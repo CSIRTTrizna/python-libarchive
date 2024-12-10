@@ -99,21 +99,27 @@ class ZipFile(SeekableArchive):
         else:
             return self.writestream(name)
 
-    def extract(self, name, path=None, pwd=None):
+    def extract(self, name: str, path=None, pwd=None, withoutpath: bool = True):
         if pwd:
             self.add_passphrase(pwd)
         if not path:
             path = os.getcwd()
-        return self.readpath(name, os.path.join(path, name))
+        if withoutpath:
+            arcname = self.sanitize_filename(filename=name)
+            targetpath = os.path.join(path, arcname)
+            targetpath = os.path.normpath(targetpath)
+        else:
+            targetpath = os.path.join(path, name)
+        return self.readpath(name, targetpath)
 
-    def extractall(self, path, names=None, pwd=None):
+    def extractall(self, path, names=None, pwd=None, withoutpath: bool = True):
         if pwd:
             self.add_passphrase(pwd)
         if not names:
             names = self.namelist()
         if names:
             for name in names:
-                self.extract(name, path)
+                self.extract(name, path, withoutpath=withoutpath)
 
     def read(self, name, pwd=None):
         if pwd:
